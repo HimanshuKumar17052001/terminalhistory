@@ -1,14 +1,30 @@
 # TerminalHistory
 
-A native macOS menu bar app that captures every terminal session automatically and lets you replay any past session into your preferred terminal, with a fresh shell in the original working directory.
+Native macOS menu bar app + CLI that captures every terminal session automatically and lets you replay any past session into your preferred terminal, with a fresh shell in the original working directory.
 
-- Capture: shell wrapper installed as the user's login shell — works in Terminal.app, iTerm2, VS Code, Docker, JetBrains IDEs, Ghostty, Alacritty, Warp, and SSH sessions.
-- Replay: native menu bar dropdown grouped by day, plus a search window.
-- Storage: local SQLite at `~/Library/Application Support/TerminalHistory/`.
-- Dependencies: zero third-party packages, zero system libraries beyond what macOS already ships.
+## Install
 
-See `docs/superpowers/specs/2026-06-26-terminalhistory-design.md` for the full design spec.
+Requires macOS 13+ and Xcode Command Line Tools (`xcode-select --install`).
 
-## Status
+```sh
+git clone https://github.com/HimanshuKumar17052001/terminalhistory.git
+cd terminalhistory
+./install.sh
+```
 
-Pre-implementation. Spec approved; implementation plan pending.
+The install script will prompt for your password once (to register the shell wrapper in `/etc/shells` and switch your login shell).
+
+## Uninstall
+
+```sh
+th uninstall
+```
+
+## Documentation
+
+- Design spec: `docs/superpowers/specs/2026-06-26-terminalhistory-design.md`
+- Implementation plan: `docs/superpowers/plans/2026-06-26-terminalhistory-impl.md`
+
+## License
+
+MIT

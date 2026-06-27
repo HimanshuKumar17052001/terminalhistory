@@ -26,5 +26,14 @@
     <string>MIT</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>NSSupportsAutomaticTermination</key>
+    <true/>
+    <key>NSSupportsSuddenTermination</key>
+    <true/>
+    <key>NSApplicationSceneManifest</key>
+    <dict>
+        <key>NSApplicationSupportsMultipleScenes</key>
+        <false/>
+    </dict>
 </dict>
 </plist>

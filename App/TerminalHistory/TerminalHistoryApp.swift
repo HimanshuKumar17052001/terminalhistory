@@ -9,10 +9,9 @@ struct TerminalHistoryApp: App {
         MenuBarExtra {
             MenuContentView(model: model)
         } label: {
-            ThemedMenuLabel(
-                variant: model.themeVariant,
-                accent: Color(hex: model.accentHex)
-            )
+            // Use a plain SF Symbol to avoid macOS 26 layout recursion
+            // (dynamic Color in the label closure triggered a scene-invalidated error).
+            Image(systemName: "terminal.fill")
         }
         .menuBarExtraStyle(.menu)
     }

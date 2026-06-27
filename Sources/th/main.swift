@@ -43,7 +43,7 @@ if looksPossiblyLikeLoginShell && args.dropFirst().isEmpty {
     ShellWrapper.run(targetShell: userShell)
     exit(0)
 }
-FileHandle.standardError.write(Data("th: not login shell (argv[0]=\(argv0), args=\(args.count), first=\(args.dropFirst().first ?? \"nil\"))\n".utf8))
+FileHandle.standardError.write(Data("th: not login shell (argv[0]=\(argv0), args=\(args.count))\n".utf8))
 
 // CLI subcommand mode
 let parser = ArgumentParser(args: Array(args.dropFirst()))

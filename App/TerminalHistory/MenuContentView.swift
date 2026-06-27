@@ -1,4 +1,5 @@
 import SwiftUI
+import THCore
 
 struct MenuContentView: View {
     @ObservedObject var model: AppModel

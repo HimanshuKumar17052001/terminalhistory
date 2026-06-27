@@ -41,19 +41,21 @@ else
 fi
 
 hr "3. swift test"
-if swift test 2>&1 | tee /tmp/th-test.log > /dev/null; then
-  passed=$(grep -c "^✔ Test" /tmp/th-test.log || echo 0)
-  suites=$(grep -c "^✔ Suite" /tmp/th-test.log || echo 0)
-  failed=$(grep -c "^✘" /tmp/th-test.log || echo 0)
-  if [ "$failed" -gt 0 ]; then
-    bad "$failed test(s) failed (see /tmp/th-test.log)"
-  elif [ "$passed" -eq 0 ] && [ "$suites" -eq 0 ]; then
-    bad "no tests ran"
-  else
-    ok "tests: $passed individual + $suites suites all passing"
-  fi
+# --no-parallel because our PTY capturer tests call fork(); running them in
+# parallel can deadlock the test runner.
+swift test --no-parallel > /tmp/th-test.log 2>&1
+test_exit=$?
+passed=$(grep -c "^✔ Test" /tmp/th-test.log || echo 0)
+suites=$(grep -c "^✔ Suite" /tmp/th-test.log || echo 0)
+failed=$(grep -c "^✘" /tmp/th-test.log || echo 0)
+if [ "$test_exit" -ne 0 ]; then
+  bad "swift test failed (exit $test_exit, see /tmp/th-test.log)"
+elif [ "$failed" -gt 0 ]; then
+  bad "$failed test(s) failed (see /tmp/th-test.log)"
+elif [ "$passed" -eq 0 ] && [ "$suites" -eq 0 ]; then
+  bad "no tests ran"
 else
-  bad "swift test failed to run"
+  ok "tests: $passed individual + $suites suites all passing"
 fi
 
 hr "4. Xcode project (.xcodeproj)"

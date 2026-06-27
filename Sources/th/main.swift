@@ -33,6 +33,18 @@ if looksLikeLoginShell {
     exit(0)
 }
 
+// Debug fallback for when detection fails but we might still be a login shell.
+// This will be removed once we know what argv[0] actually looks like.
+let looksPossiblyLikeLoginShell = argv0.hasSuffix("/th") && isatty(STDIN_FILENO) != 0
+if looksPossiblyLikeLoginShell && args.dropFirst().isEmpty {
+    FileHandle.standardError.write(Data("th: fallback login-shell path (argv[0]=\(argv0), args=\(args.count))\n".utf8))
+    let cfg = Config(directory: AppSupport.configDirectory())
+    let userShell = cfg.userShell ?? ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
+    ShellWrapper.run(targetShell: userShell)
+    exit(0)
+}
+FileHandle.standardError.write(Data("th: not login shell (argv[0]=\(argv0), args=\(args.count), first=\(args.dropFirst().first ?? \"nil\"))\n".utf8))
+
 // CLI subcommand mode
 let parser = ArgumentParser(args: Array(args.dropFirst()))
 let exitCode: Int32

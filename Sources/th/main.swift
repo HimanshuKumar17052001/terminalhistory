@@ -4,11 +4,24 @@ import Darwin
 
 let args = CommandLine.arguments
 
+// Explicit shell-wrapper mode: th --shell <user-shell>
 if let shellIdx = args.firstIndex(of: "--shell"), shellIdx + 1 < args.count {
     ShellWrapper.run(targetShell: args[shellIdx + 1])
     exit(0)
 }
 
+// Implicit shell-wrapper mode: invoked as a login shell (arg[0] starts with '-')
+// In this mode th is the login shell (set via chsh) and must transparently wrap
+// the user's actual shell so that commands run in the terminal are captured.
+let isLoginShell = (args.first?.hasPrefix("-") ?? false)
+if isLoginShell {
+    let cfg = Config(directory: AppSupport.configDirectory())
+    let userShell = cfg.userShell ?? ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
+    ShellWrapper.run(targetShell: userShell)
+    exit(0)
+}
+
+// CLI subcommand mode
 let parser = ArgumentParser(args: Array(args.dropFirst()))
 let exitCode: Int32
 switch parser.subcommand {

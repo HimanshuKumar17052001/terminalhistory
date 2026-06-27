@@ -41,13 +41,16 @@ else
 fi
 
 hr "3. swift test"
-if swift test 2>&1 | tee /tmp/th-test.log | tail -25; then
-  if grep -q "Test Suite 'All tests' passed" /tmp/th-test.log; then
-    ok "all tests passed"
-  elif grep -q "Executed 0 tests" /tmp/th-test.log; then
+if swift test 2>&1 | tee /tmp/th-test.log > /dev/null; then
+  passed=$(grep -c "^✔ Test" /tmp/th-test.log || echo 0)
+  suites=$(grep -c "^✔ Suite" /tmp/th-test.log || echo 0)
+  failed=$(grep -c "^✘" /tmp/th-test.log || echo 0)
+  if [ "$failed" -gt 0 ]; then
+    bad "$failed test(s) failed (see /tmp/th-test.log)"
+  elif [ "$passed" -eq 0 ] && [ "$suites" -eq 0 ]; then
     bad "no tests ran"
   else
-    bad "tests had failures"
+    ok "tests: $passed individual + $suites suites all passing"
   fi
 else
   bad "swift test failed to run"

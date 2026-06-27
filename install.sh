@@ -10,8 +10,12 @@ install -m 0755 .build/release/th "$HOME/.local/bin/th"
 if [ -d "App/TerminalHistory.xcodeproj" ]; then
   if xcodebuild -version >/dev/null 2>&1 && [ "$(/usr/bin/xcode-select -p)" != "/Library/Developer/CommandLineTools" ]; then
     echo "Building TerminalHistory.app..."
-    xcodebuild -project App/TerminalHistory.xcodeproj -scheme TerminalHistory -configuration Release
-    cp -R App/build/Release/TerminalHistory.app /Applications/
+    xcodebuild -project App/TerminalHistory.xcodeproj \
+               -scheme TerminalHistory \
+               -configuration Release \
+               -derivedDataPath App/build
+    cp -R App/build/Build/Products/Release/TerminalHistory.app /Applications/
+    echo "✓ App copied to /Applications"
   else
     printf '\033[33mSkipping TerminalHistory.app build: full Xcode not installed (only Command Line Tools detected).\n\033[0m'
     printf '\033[33mThe CLI (`th`) is fully functional. To get the menu bar app, install full Xcode from the App Store and re-run install.sh.\n\033[0m'

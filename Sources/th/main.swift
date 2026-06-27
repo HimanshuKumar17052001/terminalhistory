@@ -4,19 +4,31 @@ import Darwin
 
 let args = CommandLine.arguments
 
-// Explicit shell-wrapper mode: th --shell <user-shell>
+// Explicit shell-wrapper mode: th --shell <user-shell> [-- <args-to-forward>]
 if let shellIdx = args.firstIndex(of: "--shell"), shellIdx + 1 < args.count {
-    ShellWrapper.run(targetShell: args[shellIdx + 1])
+    let target = args[shellIdx + 1]
+    // Anything after a literal `--` is forwarded as extra args to the shell.
+    var extra: [String] = []
+    if let dash = args.firstIndex(of: "--"), dash > shellIdx + 1 {
+        extra = Array(args[(dash + 1)...])
+    }
+    ShellWrapper.run(targetShell: target, extraArgs: extra)
     exit(0)
 }
 
-// Implicit shell-wrapper mode: invoked as a login shell (arg[0] starts with '-')
-// In this mode th is the login shell (set via chsh) and must transparently wrap
-// the user's actual shell so that commands run in the terminal are captured.
-let isLoginShell = (args.first?.hasPrefix("-") ?? false)
-if isLoginShell {
+// Implicit shell-wrapper mode: invoked as a login shell.
+// We detect this by checking argv[0]: POSIX login shells are invoked with
+// argv[0] set to "-<basename>". Some launchers (e.g. macOS Terminal.app via
+// launchd) also do this. We also fall back to: no subcommand arg AND a TTY
+// AND argv[0] ends with "/th" — i.e. we're the binary invoked without args.
+let argv0 = args.first ?? ""
+let looksLikeLoginShell = argv0.hasPrefix("-") ||
+    (argv0.hasSuffix("/th") && args.count == 1 && isatty(STDIN_FILENO) != 0)
+
+if looksLikeLoginShell {
     let cfg = Config(directory: AppSupport.configDirectory())
     let userShell = cfg.userShell ?? ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
+    FileHandle.standardError.write(Data("th: login shell detected (argv[0]=\(argv0)), wrapping \(userShell)\n".utf8))
     ShellWrapper.run(targetShell: userShell)
     exit(0)
 }

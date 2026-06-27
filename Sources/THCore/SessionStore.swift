@@ -138,10 +138,12 @@ public final class SessionStore {
             sqlite3_bind_int(stmt, 2, Int32(e.seq))
             sqlite3_bind_int64(stmt, 3, Int64(e.ts))
             sqlite3_bind_text(stmt, 4, e.direction.rawValue, -1, SQLITE_TRANSIENT)
-            let gz = try GzipCodec.compress(e.data)
-            gz.withUnsafeBytes { raw in
+            // Store raw event bytes (UTF-8 text). The FTS trigger indexes
+            // these directly via CAST(data AS TEXT); no compression in v1
+            // because the FTS index needs searchable plaintext.
+            e.data.withUnsafeBytes { raw in
                 if let base = raw.baseAddress {
-                    sqlite3_bind_blob(stmt, 5, base, Int32(gz.count), SQLITE_TRANSIENT)
+                    sqlite3_bind_blob(stmt, 5, base, Int32(e.data.count), SQLITE_TRANSIENT)
                 }
             }
             guard sqlite3_step(stmt) == SQLITE_DONE else {
@@ -161,13 +163,12 @@ public final class SessionStore {
         while sqlite3_step(stmt) == SQLITE_ROW {
             let bytes = sqlite3_column_bytes(stmt, 3)
             let buf = sqlite3_column_blob(stmt, 3)
-            let compressed = Data(bytes: buf!, count: Int(bytes))
-            let raw = (try? GzipCodec.decompress(compressed)) ?? compressed
+            let data = Data(bytes: buf!, count: Int(bytes))
             out.append(Event(
                 seq: Int(sqlite3_column_int(stmt, 0)),
                 ts: UInt64(sqlite3_column_int64(stmt, 1)),
                 direction: EventDirection(rawValue: String(cString: sqlite3_column_text(stmt, 2))) ?? .out,
-                data: raw
+                data: data
             ))
         }
         return out
@@ -315,11 +316,15 @@ public final class SessionStore {
         }
         var out: [SearchResult] = []
         while sqlite3_step(stmt) == SQLITE_ROW {
+            let snippetPtr = sqlite3_column_text(stmt, 1)
+            let snippet = snippetPtr != nil ? String(cString: snippetPtr!) : ""
+            let titlePtr = sqlite3_column_text(stmt, 3)
+            let title: String? = sqlite3_column_type(stmt, 3) == SQLITE_NULL ? nil : (titlePtr != nil ? String(cString: titlePtr!) : nil)
             out.append(SearchResult(
                 sessionID: String(cString: sqlite3_column_text(stmt, 0)),
-                snippet: String(cString: sqlite3_column_text(stmt, 1)),
+                snippet: snippet,
                 startedAt: UInt64(sqlite3_column_int64(stmt, 2)),
-                title: sqlite3_column_type(stmt, 3) == SQLITE_NULL ? nil : String(cString: sqlite3_column_text(stmt, 3))
+                title: title
             ))
         }
         return out

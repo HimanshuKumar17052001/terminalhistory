@@ -36,7 +36,7 @@ extension Subcommands {
                     task.arguments = launcher.arguments(for: script, escape: escape)
                 }
                 try task.run(); task.waitUntilExit()
-                try store.close(); return 0
+                store.close(); return 0
             } catch {
                 FileHandle.standardError.write(Data("replay: \(error)\n".utf8)); return 1
             }

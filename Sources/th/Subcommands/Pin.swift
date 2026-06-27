@@ -10,7 +10,7 @@ extension Subcommands {
             let store = List.openStore()
             do {
                 try store.setPinned(id, pinned: pinning)
-                try store.close()
+                store.close()
                 print(pinning ? "pinned \(id)" : "unpinned \(id)")
                 return 0
             } catch {

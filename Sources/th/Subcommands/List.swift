@@ -21,7 +21,7 @@ extension Subcommands {
                     let pin = s.pinned ? "* " : "  "
                     print("\(pin)\(s.id)  \(stamp)  \(s.title ?? s.shell)")
                 }
-                try store.close(); return 0
+                store.close(); return 0
             } catch {
                 FileHandle.standardError.write(Data("list: \(error)\n".utf8)); return 1
             }

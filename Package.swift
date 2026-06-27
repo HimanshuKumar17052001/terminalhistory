@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
@@ -8,9 +8,18 @@ let package = Package(
         .library(name: "THCore", targets: ["THCore"]),
         .executable(name: "th", targets: ["th"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-testing.git", from: "0.10.0"),
+    ],
     targets: [
         .executableTarget(name: "th", dependencies: ["THCore"]),
         .target(name: "THCore", resources: [.process("Schema.sql")]),
-        .testTarget(name: "THCoreTests", dependencies: ["THCore"]),
+        .testTarget(
+            name: "THCoreTests",
+            dependencies: [
+                "THCore",
+                .product(name: "Testing", package: "swift-testing"),
+            ]
+        ),
     ]
 )

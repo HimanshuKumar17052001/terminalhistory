@@ -17,7 +17,7 @@ extension Subcommands {
                 case .cast: try Export(store: store).cast(sessionID: id, to: url)
                 case .txt:  try Export(store: store).text(sessionID: id, to: url)
                 }
-                try store.close()
+                store.close()
                 print("wrote \(url.path)"); return 0
             } catch {
                 FileHandle.standardError.write(Data("export: \(error)\n".utf8)); return 1

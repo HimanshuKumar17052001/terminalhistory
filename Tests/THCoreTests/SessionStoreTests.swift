@@ -1,14 +1,15 @@
-import XCTest
+import Testing
+import Foundation
 @testable import THCore
 
-final class SessionStoreTests: XCTestCase {
-    func testOpenCreatesSchema() throws {
+@Suite struct SessionStoreTests {
+    @Test func testOpenCreatesSchema() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
         _ = try SessionStore(url: url)
     }
-    func testInsertAndFetchSession() throws {
+    @Test func testInsertAndFetchSession() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
@@ -18,10 +19,10 @@ final class SessionStoreTests: XCTestCase {
                         title: nil, bytesIn: 0, bytesOut: 0)
         try store.insertSession(s)
         let loaded = try store.session(id: "S1")
-        XCTAssertEqual(loaded?.shell, "/bin/zsh")
-        XCTAssertEqual(loaded?.status, .active)
+        #expect(loaded?.shell == "/bin/zsh")
+        #expect(loaded?.status == .active)
     }
-    func testAppendAndFetchEvents() throws {
+    @Test func testAppendAndFetchEvents() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
@@ -34,10 +35,10 @@ final class SessionStoreTests: XCTestCase {
             Event(seq: 1, ts: 2, direction: .in,  data: Data("ls".utf8)),
         ])
         let events = try store.events(sessionID: "S1")
-        XCTAssertEqual(events.count, 2)
-        XCTAssertEqual(events[0].direction, .out)
+        #expect(events.count == 2)
+        #expect(events[0].direction == .out)
     }
-    func testListRecentSessions() throws {
+    @Test func testListRecentSessions() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
@@ -49,10 +50,10 @@ final class SessionStoreTests: XCTestCase {
                                             title: nil, bytesIn: 0, bytesOut: 0))
         }
         let recent = try store.recentSessions(limit: 3)
-        XCTAssertEqual(recent.count, 3)
-        XCTAssertEqual(recent.first?.id, "S4")
+        #expect(recent.count == 3)
+        #expect(recent.first?.id == "S4")
     }
-    func testMarkStaleActiveSessionsCrashed() throws {
+    @Test func testMarkStaleActiveSessionsCrashed() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
@@ -64,6 +65,6 @@ final class SessionStoreTests: XCTestCase {
             status: .active, exitCode: nil, pinned: false, title: nil, bytesIn: 0, bytesOut: 0))
         try store.markStaleActiveSessionsCrashed(olderThanHours: 24)
         let s = try store.session(id: "S1")
-        XCTAssertEqual(s?.status, .crashed)
+        #expect(s?.status == .crashed)
     }
 }

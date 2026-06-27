@@ -76,6 +76,7 @@ public final class PTYCapturer {
         return 128 + (status & 0x7f)
     }
 
+    @discardableResult
     public func runNoCapture(executable: String, args: [String], env: [String: String]? = nil) -> Int32 {
         let pair = try? PTYPair()
         let pid = sysFork()

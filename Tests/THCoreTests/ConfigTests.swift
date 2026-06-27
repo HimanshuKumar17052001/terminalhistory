@@ -1,8 +1,9 @@
-import XCTest
+import Testing
+import Foundation
 @testable import THCore
 
-final class ConfigTests: XCTestCase {
-    func testRoundTrip() throws {
+@Suite struct ConfigTests {
+    @Test func testRoundTrip() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("th-cfg-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -14,15 +15,15 @@ final class ConfigTests: XCTestCase {
         try cfg.save()
 
         let loaded = Config(directory: dir)
-        XCTAssertEqual(loaded.userShell, "/bin/zsh")
-        XCTAssertEqual(loaded.defaultTerminal, "iterm")
-        XCTAssertEqual(loaded.retention.maxAgeDays, 30)
-        XCTAssertEqual(loaded.theme.iconVariant, .dark)
+        #expect(loaded.userShell == "/bin/zsh")
+        #expect(loaded.defaultTerminal == "iterm")
+        #expect(loaded.retention.maxAgeDays == 30)
+        #expect(loaded.theme.iconVariant == .dark)
     }
-    func testMissingFileReturnsDefaults() {
+    @Test func testMissingFileReturnsDefaults() {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("th-cfg-\(UUID().uuidString)")
         let cfg = Config(directory: dir)
-        XCTAssertNil(cfg.userShell)
-        XCTAssertEqual(cfg.theme.iconVariant, .auto)
+        #expect(cfg.userShell == nil)
+        #expect(cfg.theme.iconVariant == .auto)
     }
 }

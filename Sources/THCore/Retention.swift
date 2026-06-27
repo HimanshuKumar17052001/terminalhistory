@@ -1,6 +1,6 @@
 import Foundation
 
-public struct RetentionPolicy: Equatable, Codable {
+public struct RetentionPolicy: Equatable, Codable, Sendable {
     public var maxAgeDays: Int
     public var maxBytes: Int64
     public init(maxAgeDays: Int, maxBytes: Int64) {

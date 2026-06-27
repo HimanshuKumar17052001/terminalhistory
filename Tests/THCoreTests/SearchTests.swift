@@ -1,8 +1,9 @@
-import XCTest
+import Testing
+import Foundation
 @testable import THCore
 
-final class SearchTests: XCTestCase {
-    func testSearchFindsTermInOutput() throws {
+@Suite struct SearchTests {
+    @Test func testSearchFindsTermInOutput() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
         let store = try SessionStore(url: url)
@@ -14,8 +15,8 @@ final class SearchTests: XCTestCase {
             Event(seq: 0, ts: now, direction: .out, data: Data("hello world".utf8)),
         ])
         let results = try Search(store: store).query("hello", limit: 10)
-        XCTAssertEqual(results.count, 1)
-        XCTAssertEqual(results.first?.sessionID, "S1")
-        XCTAssertTrue(results.first?.snippet.contains("hello") ?? false)
+        #expect(results.count == 1)
+        #expect(results.first?.sessionID == "S1")
+        #expect(results.first?.snippet.contains("hello") ?? false)
     }
 }

@@ -1,8 +1,9 @@
-import XCTest
+import Testing
+import Foundation
 @testable import THCore
 
-final class ExportTests: XCTestCase {
-    func testCastExport() throws {
+@Suite struct ExportTests {
+    @Test func testCastExport() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
         let store = try SessionStore(url: url)
@@ -17,10 +18,11 @@ final class ExportTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: out) }
         try Export(store: store).cast(sessionID: "S", to: out)
         let text = try String(contentsOf: out)
-        XCTAssertTrue(text.contains("\"version\":2"))
-        XCTAssertTrue(text.contains("\"hi\""))
+        #expect(text.contains("\"version\":2"))
+        // asciicast v2 uses base64-encoded output payloads.
+        #expect(text.contains("aGk="))  // base64("hi")
     }
-    func testTxtExport() throws {
+    @Test func testTxtExport() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
         let store = try SessionStore(url: url)
@@ -33,6 +35,6 @@ final class ExportTests: XCTestCase {
         let out = FileManager.default.temporaryDirectory.appendingPathComponent("out.txt")
         defer { try? FileManager.default.removeItem(at: out) }
         try Export(store: store).text(sessionID: "S", to: out)
-        XCTAssertTrue(try String(contentsOf: out).contains("hello"))
+        #expect(try String(contentsOf: out).contains("hello"))
     }
 }

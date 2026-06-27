@@ -1,8 +1,9 @@
-import XCTest
+import Testing
+import Foundation
 @testable import THCore
 
-final class SmokeTests: XCTestCase {
-    func testPackageBuilds() {
-        XCTAssertEqual(1 + 1, 2)
+@Suite struct SmokeTests {
+    @Test func packageBuilds() {
+        #expect(1 + 1 == 2)
     }
 }

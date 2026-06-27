@@ -1,8 +1,9 @@
-import XCTest
+import Testing
+import Foundation
 @testable import THCore
 
-final class SessionReplayerTests: XCTestCase {
-    func testReplayPreservesAnsiAndDimsInput() throws {
+@Suite struct SessionReplayerTests {
+    @Test func testReplayPreservesAnsiAndDimsInput() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
         let store = try SessionStore(url: url)
@@ -14,12 +15,14 @@ final class SessionReplayerTests: XCTestCase {
             Event(seq: 1, ts: 1, direction: .in,  data: Data("ls".utf8)),
         ])
         let script = try SessionReplayer(store: store).replayScript(for: "S", shellPath: "/bin/zsh", cwdFinal: "/tmp")
-        XCTAssertTrue(script.contains("\u{1B}[31mred\u{1B}[0m"))
-        XCTAssertTrue(script.contains("\u{1B}[2mls\u{1B}[0m"))
-        XCTAssertTrue(script.contains("cd '/tmp'"))
-        XCTAssertTrue(script.contains("exec '/bin/zsh' -l"))
+        // Output bytes are preserved verbatim via printf %b (ESC bytes pass through).
+        #expect(script.contains("\u{1B}[31mred\u{1B}[0m"))
+        // Input bytes are wrapped in literal \033 escape sequences for printf to interpret.
+        #expect(script.contains("\\033[2mls\\033[0m"))
+        #expect(script.contains("cd '/tmp'"))
+        #expect(script.contains("exec '/bin/zsh' -l"))
     }
-    func testReplaySkipsCdIfCwdNil() throws {
+    @Test func testReplaySkipsCdIfCwdNil() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
         let store = try SessionStore(url: url)
@@ -27,6 +30,6 @@ final class SessionReplayerTests: XCTestCase {
                                         cwdInitial: "/", host: "h", status: .exited,
                                         exitCode: 0, pinned: false, title: nil, bytesIn: 0, bytesOut: 0))
         let script = try SessionReplayer(store: store).replayScript(for: "S", shellPath: "/bin/zsh", cwdFinal: nil)
-        XCTAssertFalse(script.contains("cd '"))
+        #expect(!script.contains("cd '"))
     }
 }

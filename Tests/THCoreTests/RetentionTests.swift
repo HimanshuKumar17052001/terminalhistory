@@ -1,8 +1,9 @@
-import XCTest
+import Testing
+import Foundation
 @testable import THCore
 
-final class RetentionTests: XCTestCase {
-    func testPrunesByAge() throws {
+@Suite struct RetentionTests {
+    @Test func testPrunesByAge() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
         let store = try SessionStore(url: url)
@@ -15,10 +16,10 @@ final class RetentionTests: XCTestCase {
                                         cwdInitial: "/", host: "h", status: .exited,
                                         exitCode: 0, pinned: false, title: nil, bytesIn: 0, bytesOut: 0))
         let r = try Retention(store: store, policy: RetentionPolicy(maxAgeDays: 30, maxBytes: 1_000_000_000)).prune()
-        XCTAssertEqual(r.deleted, ["OLD"])
-        XCTAssertNotNil(try store.session(id: "FRESH"))
+        #expect(r.deleted == ["OLD"])
+        #expect(try store.session(id: "FRESH") != nil)
     }
-    func testPinnedSessionsExemptFromAge() throws {
+    @Test func testPinnedSessionsExemptFromAge() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("th-\(UUID().uuidString).sqlite")
         defer { try? FileManager.default.removeItem(at: url) }
         let store = try SessionStore(url: url)
@@ -28,6 +29,6 @@ final class RetentionTests: XCTestCase {
                                         status: .exited, exitCode: 0, pinned: true,
                                         title: nil, bytesIn: 0, bytesOut: 0))
         let r = try Retention(store: store, policy: RetentionPolicy(maxAgeDays: 30, maxBytes: 1_000_000_000)).prune()
-        XCTAssertTrue(r.deleted.isEmpty)
+        #expect(r.deleted.isEmpty)
     }
 }

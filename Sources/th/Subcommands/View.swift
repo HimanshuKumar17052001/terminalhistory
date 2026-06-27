@@ -14,7 +14,7 @@ extension Subcommands {
                     for: id, shellPath: s?.shell ?? "/bin/zsh", cwdFinal: s?.cwdFinal
                 )
                 FileHandle.standardOutput.write(Data(script.utf8))
-                try store.close(); return 0
+                store.close(); return 0
             } catch {
                 FileHandle.standardError.write(Data("view: \(error)\n".utf8)); return 1
             }

@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS events_fts USING fts5(
-  data, content='', tokenize='unicode61 remove_diacritics'
+  data, content='', tokenize='unicode61'
 );
 
 CREATE TABLE IF NOT EXISTS meta ( key TEXT PRIMARY KEY, value TEXT NOT NULL );

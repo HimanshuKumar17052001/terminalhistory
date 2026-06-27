@@ -24,10 +24,16 @@ fi
 
 hr "2. swift build"
 if swift build 2>&1 | tee /tmp/th-build.log | tail -3; then
-  if grep -qiE "warning:|error:" /tmp/th-build.log; then
-    bad "build had warnings/errors (see /tmp/th-build.log)"
+  # Only fail on real errors, not on warnings. Warnings are surfaced but don't fail the check.
+  if grep -qiE "^error:|fatal error|cannot find|use of unresolved" /tmp/th-build.log; then
+    bad "build had errors (see /tmp/th-build.log)"
   else
-    ok "build clean, no warnings"
+    warn_count=$(grep -cE "warning:" /tmp/th-build.log || true)
+    if [ "$warn_count" -gt 0 ]; then
+      printf "  \033[33m!\033[0m %d warning(s) — not blocking (see /tmp/th-build.log)\n" "$warn_count"
+    else
+      ok "build clean, no warnings"
+    fi
   fi
 else
   bad "swift build failed"

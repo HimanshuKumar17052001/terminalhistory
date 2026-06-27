@@ -14,9 +14,16 @@ public enum GzipCodec {
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
         defer { buffer.deallocate() }
 
-        var stream = compression_stream(dst_ptr: buffer, dst_size: bufferSize,
-                                       src_ptr: UnsafePointer<UInt8>(bitPattern: 0)!,
-                                       src_size: 0, state: nil)
+        // Allocate a single dummy byte as a valid (non-nil) src pointer for init.
+        let dummy = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
+        defer { dummy.deallocate() }
+        dummy.pointee = 0
+
+        var stream = compression_stream(
+            dst_ptr: buffer, dst_size: bufferSize,
+            src_ptr: UnsafePointer<UInt8>(dummy),
+            src_size: 0, state: nil
+        )
         var status = compression_stream_init(&stream, operation, COMPRESSION_ZLIB)
         guard status != COMPRESSION_STATUS_ERROR else { throw GzipError.initFailed }
         defer { compression_stream_destroy(&stream) }

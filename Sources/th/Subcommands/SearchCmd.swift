@@ -13,7 +13,7 @@ extension Subcommands {
                 for r in try Search(store: store).query(query, limit: limit) {
                     print("\(r.sessionID)  \(r.title ?? "")  \(r.snippet)")
                 }
-                try store.close(); return 0
+                store.close(); return 0
             } catch {
                 FileHandle.standardError.write(Data("search: \(error)\n".utf8)); return 1
             }

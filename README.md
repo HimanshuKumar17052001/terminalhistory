@@ -51,6 +51,7 @@ ruby scripts/generate-xcodeproj.rb
 - [Implementation plan](docs/superpowers/plans/2026-06-26-terminalhistory-impl.md)
 - [App setup notes](App/TerminalHistory/SETUP.md)
 - [Manual smoke checklist](App/TerminalHistory/CHECKLIST.md)
+- [Changelog](CHANGELOG.md)
 
 ## License
 

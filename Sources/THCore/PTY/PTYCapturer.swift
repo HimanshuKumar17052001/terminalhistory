@@ -34,6 +34,21 @@ public final class PTYCapturer {
             exit(127)
         }
         if pid < 0 { throw PTYError.forkFailed }
+
+        // CRITICAL: make the child the foreground process group of the PTY.
+        // Otherwise job-control signals (Ctrl+C, Ctrl+Z, Ctrl+\) go to the
+        // parent (this wrapper) instead of the child (the user's shell),
+        // which causes the wrapper to die and the terminal to close.
+        _ = tcsetpgrp(pair.slave, pid)
+
+        // With the child as foreground, ignore job-control signals in the
+        // parent so they don't kill the wrapper. They now reach the child.
+        signal(SIGINT, SIG_IGN)
+        signal(SIGQUIT, SIG_IGN)
+        signal(SIGTSTP, SIG_IGN)
+        signal(SIGTTIN, SIG_IGN)
+        signal(SIGTTOU, SIG_IGN)
+
         close(pair.slave)
 
         let queue = DispatchQueue(label: "th.pty", qos: .userInitiated)
@@ -72,6 +87,14 @@ public final class PTYCapturer {
         stop.set(true)
         close(pair.master)
         group.wait()
+
+        // Restore default signal handling so subsequent invocations work.
+        signal(SIGINT, SIG_DFL)
+        signal(SIGQUIT, SIG_DFL)
+        signal(SIGTSTP, SIG_DFL)
+        signal(SIGTTIN, SIG_DFL)
+        signal(SIGTTOU, SIG_DFL)
+
         if (status & 0x7f) == 0 { return (status >> 8) & 0xff }
         return 128 + (status & 0x7f)
     }
